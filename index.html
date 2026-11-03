@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MANDATORY: Declare support for both light and dark themes -->
+  <meta name="color-scheme" content="light dark">
+  <title>Resonance Breathwork — Cardiorespiratory Pacer &amp; CO₂ Tolerance Lab</title>
+  <style>
+    :root {
+      --bg-light: #f5f6f8;
+      --bg-dark: #0a0d12;
+      --surface-light: #ffffff;
+      --surface-dark: #121721;
+      --surface-elevated-light: #eef1f6;
+      --surface-elevated-dark: #19202e;
+      --border-light: #dce1eb;
+      --border-dark: #252f42;
+      --text-light: #0f172a;
+      --text-dark: #f1f5f9;
+      --muted-light: #475569;
+      --muted-dark: #94a3b8;
+
+      --brand-light: #0d9488;
+      --brand-dark: #2dd4bf;
+      --brand-soft-light: rgba(13, 148, 136, 0.12);
+      --brand-soft-dark: rgba(45, 212, 191, 0.14);
+
+      --inhale-color: #2dd4bf;
+      --hold-color: #fbbf24;
+      --exhale-color: #60a5fa;
+
+      --bg: var(--bg-light);
+      --surface: var(--surface-light);
+      --surface-elevated: var(--surface-elevated-light);
+      --border: var(--border-light);
+      --text: var(--text-light);
+      --muted: var(--muted-light);
+      --brand: var(--brand-light);
+      --brand-soft: var(--brand-soft-light);
+
+      /* MANDATORY: Fallback for browsers without light-dark support */
+      @media (prefers-color-scheme: dark) {
+        --bg: var(--bg-dark);
+        --surface: var(--surface-dark);
+        --surface-elevated: var(--surface-elevated-dark);
+        --border: var(--border-dark);
+        --text: var(--text-dark);
+        --muted: var(--muted-dark);
+        --brand: var(--brand-dark);
+        --brand-soft: var(--brand-soft-dark);
+      }
+
+      @supports (color: light-dark(white, black)) {
+        --bg: light-dark(var(--bg-light), var(--bg-dark));
+        --surface: light-dark(var(--surface-light), var(--surface-dark));
+        --surface-elevated: light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
+        --border: light-dark(var(--border-light), var(--border-dark));
+        --text: light-dark(var(--text-light), var(--text-dark));
+        --muted: light-dark(var(--muted-light), var(--muted-dark));
+        --brand: light-dark(var(--brand-light), var(--brand-dark));
+        --brand-soft: light-dark(var(--brand-soft-light), var(--brand-soft-dark));
+      }
+
+      /* MANDATORY: Apply color-scheme to :root for viewport-wide theming */
+      color-scheme: light dark;
+      accent-color: var(--brand);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: var(--bg-dark);
+      --surface: var(--surface-dark);
+      --surface-elevated: var(--surface-elevated-dark);
+      --border: var(--border-dark);
+      --text: var(--text-dark);
+      --muted: var(--muted-dark);
+      --brand: var(--brand-dark);
+      --brand-soft: var(--brand-soft-dark);
+    }
+
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: var(--bg-light);
+      --surface: var(--surface-light);
+      --surface-elevated: var(--surface-elevated-light);
+      --border: var(--border-light);
+      --text: var(--text-light);
+      --muted: var(--muted-light);
+      --brand: var(--brand-light);
+      --brand-soft: var(--brand-soft-light);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      accent-color: var(--brand);
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    /* Native modal dialog rules per modern-web-guidance */
+    dialog:modal {
+      overscroll-behavior: contain;
+    }
+    dialog::backdrop {
+      overflow: hidden;
+      overscroll-behavior: contain;
+      background-color: rgba(4, 7, 13, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    dialog {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 16px;
+      max-width: 680px;
+      width: calc(100% - 2rem);
+      margin: auto;
+      padding: 0;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    }
+    dialog[open] {
+      display: flex;
+      flex-direction: column;
+      max-height: 88vh;
+    }
+
+    /* Fallback for older browsers without accent-color */
+    @supports not (accent-color: var(--brand)) {
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        background: linear-gradient(to right, var(--brand) var(--progress, 50%), #64748b var(--progress, 50%));
+        border-radius: 4px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: var(--brand);
+        cursor: pointer;
+        margin-top: -4px;
+      }
+      input[type="range"]::-moz-range-track {
+        width: 100%;
+        height: 8px;
+        background: #64748b;
+        border-radius: 4px;
+      }
+      input[type="range"]::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: var(--brand);
+        cursor: pointer;
+      }
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--brand-soft);
+      border: 1px solid var(--brand);
+      color: var(--brand);
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: grid;
+      place-items: center;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface-elevated);
+      color: var(--text);
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: border-color 0.15s ease, transform 0.1s ease, background-color 0.15s ease;
+    }
+
+    button:hover {
+      border-color: var(--brand);
+    }
+
+    button.primary {
+      background: var(--brand);
+      color: #041311;
+      border-color: var(--brand);
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      filter: brightness(1.06);
+    }
+
+    .layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .pacer-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 520px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .protocol-pill-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      width: 100%;
+    }
+
+    .protocol-pill {
+      padding: 0.42rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .protocol-pill[aria-pressed="true"] {
+      background: var(--brand-soft);
+      border-color: var(--brand);
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    /* Visual Pacer Orb & Rings */
+    .orb-wrapper {
+      position: relative;
+      width: 290px;
+      height: 290px;
+      display: grid;
+      place-items: center;
+      margin: 1rem 0 1.25rem;
+    }
+
+    .orb-ring-outer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px dashed var(--border);
+      pointer-events: none;
+    }
+
+    .orb-ring-progress {
+      position: absolute;
+      inset: -8px;
+      width: 306px;
+      height: 306px;
+      transform: rotate(-90deg);
+      pointer-events: none;
+    }
+
+    .orb-core {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(45, 212, 191, 0.42), rgba(13, 148, 136, 0.14) 65%, transparent);
+      border: 2px solid var(--brand);
+      box-shadow: 0 0 48px rgba(45, 212, 191, 0.18), inset 0 0 28px rgba(45, 212, 191, 0.16);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transform: scale(0.58);
+      will-change: transform;
+      position: relative;
+      z-index: 2;
+    }
+
+    .orb-phase-label {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .orb-timer {
+      font-variant-numeric: tabular-nums;
+      font-size: 2.35rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-top: 0.15rem;
+    }
+
+    .orb-cue {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+      max-width: 150px;
+    }
+
+    /* Live Respiratory & RSA Wave Canvas */
+    .wave-box {
+      width: 100%;
+      height: 82px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.4rem;
+      margin-bottom: 1.1rem;
+      position: relative;
+    }
+
+    .wave-caption {
+      position: absolute;
+      top: 6px;
+      left: 10px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      display: flex;
+      gap: 1rem;
+    }
+
+    canvas#respWave {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .session-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      width: 100%;
+      margin-top: 1.25rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .metrics-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-box {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--brand);
+    }
+
+    .metric-lbl {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-desc {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .control-val {
+      color: var(--brand);
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    select {
+      font: inherit;
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-elevated);
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .profile-banner {
+      background: var(--brand-soft);
+      border: 1px solid var(--brand);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .profile-banner-text h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .profile-banner-text p {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .bolt-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .bolt-timer-display {
+      font-size: 1.8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--brand);
+    }
+
+    .science-list {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .science-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-size: 0.82rem;
+    }
+
+    .science-item h4 {
+      font-size: 0.88rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+
+    .science-item p {
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .science-cite {
+      font-size: 0.74rem;
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .science-cite:hover {
+      text-decoration: underline;
+    }
+
+    .dialog-header {
+      padding: 1.15rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dialog-body {
+      padding: 1.4rem;
+      overflow-y: auto;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .dialog-footer {
+      padding: 1rem 1.4rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+    }
+
+    .step-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 560px) {
+      .step-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .step-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem;
+      text-align: center;
+      font-size: 0.78rem;
+    }
+
+    .step-card.active {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <div class="brand-lockup">
+        <div class="brand-badge">RB</div>
+        <div>
+          <div class="brand-title">Resonance Breathwork</div>
+          <div class="brand-subtitle">Cardiorespiratory Resonance &amp; CO₂ Tolerance Lab</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="openCalibrateBtn" command="show-modal" commandfor="calibrationDialog">
+          Calibrate My Resonance
+        </button>
+        <button type="button" id="openScienceBtn" command="show-modal" commandfor="scienceDialog">
+          Research &amp; Citations
+        </button>
+        <button type="button" id="audioToggleBtn" aria-pressed="true">
+          Audio Cues: ON
+        </button>
+        <button type="button" id="themeToggleBtn">
+          Theme: Auto
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Left Column: Interactive Breathwork Pacer -->
+    <section class="card pacer-stage" aria-label="Breathwork Pacer">
+      <div class="protocol-pill-bar" role="group" aria-label="Breathing Protocols">
+        <button type="button" class="protocol-pill" data-protocol="coherent" aria-pressed="true">
+          5.5 Coherent (5.5s / 5.5s)
+        </button>
+        <button type="button" class="protocol-pill" data-protocol="personal" aria-pressed="false">
+          My Calibrated RF (<span id="pillRfLabel">5.5</span> bpm)
+        </button>
+        <button type="button" class="protocol-pill" data-protocol="sigh" aria-pressed="false">
+          Physiological Sigh (Double Inhale)
+        </button>
+        <button type="button" class="protocol-pill" data-protocol="box" aria-pressed="false">
+          BOLT-Scaled Box
+        </button>
+        <button type="button" class="protocol-pill" data-protocol="downregulate" aria-pressed="false">
+          4-7-8 Parasympathetic
+        </button>
+        <button type="button" class="protocol-pill" data-protocol="nasal_endurance" aria-pressed="false">
+          Nasal CO₂ Cadence (1:2:1)
+        </button>
+      </div>
+
+      <div class="orb-wrapper">
+        <div class="orb-ring-outer"></div>
+        <svg class="orb-ring-progress" viewBox="0 0 306 306" aria-hidden="true">
+          <circle cx="153" cy="153" r="146" fill="none" stroke="var(--border)" stroke-width="3"></circle>
+          <circle id="progressArc" cx="153" cy="153" r="146" fill="none" stroke="var(--brand)" stroke-width="4"
+            stroke-linecap="round" stroke-dasharray="917.3" stroke-dashoffset="917.3"></circle>
+        </svg>
+        <div class="orb-core" id="orbCore">
+          <div class="orb-phase-label" id="phaseLabel">Ready</div>
+          <div class="orb-timer" id="phaseTimer">5.5s</div>
+          <div class="orb-cue" id="phaseCue">Nasal inhale, low &amp; silent</div>
+        </div>
+      </div>
+
+      <div class="wave-box">
+        <div class="wave-caption">
+          <span>Lung Volume Trajectory</span>
+          <span id="phaseRatioSummary">Inhale 5.5s · Exhale 5.5s (5.45 bpm)</span>
+        </div>
+        <canvas id="respWave" width="640" height="72"></canvas>
+      </div>
+
+      <div class="session-controls">
+        <button type="button" class="primary" id="startStopBtn">Start Session</button>
+        <select id="sessionDurationSelect" aria-label="Session Duration">
+          <option value="120">2 min (Quick Reset)</option>
+          <option value="300" selected>5 min (Stanford RCT Dose)</option>
+          <option value="600">10 min (HRV Baroreflex Train)</option>
+          <option value="900">15 min (Deep Vagal Session)</option>
+        </select>
+        <button type="button" id="resetSessionBtn">Reset</button>
+      </div>
+
+      <div class="metrics-strip">
+        <div class="metric-box">
+          <div class="metric-val" id="metricBpm">5.5</div>
+          <div class="metric-lbl">Breaths / Min</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" id="metricCycleCount">0</div>
+          <div class="metric-lbl">Completed Cycles</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" id="metricRemaining">05:00</div>
+          <div class="metric-lbl">Session Remaining</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val" id="metricTotalMins">0.0</div>
+          <div class="metric-lbl">Total Mins Logged</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Personalization Engine & BOLT Assessment -->
+    <aside style="display: grid; gap: 1.25rem;">
+      <section class="card" aria-label="Tailor To Me Controls">
+        <div class="profile-banner">
+          <div class="profile-banner-text">
+            <h3>Your Biometric Profile</h3>
+            <p id="profileSummaryText">RF: 5.5 bpm (40:60 vagal bias) · BOLT: 25s (Developing)</p>
+          </div>
+          <span class="badge" id="profileTierBadge">Balanced</span>
+        </div>
+
+        <div class="section-title">
+          <span>1. State-Based Recommendation</span>
+        </div>
+        <p class="section-desc">
+          Select your current autonomic state to auto-configure the optimal evidence-based cadence.
+        </p>
+        <div class="control-row" style="margin-bottom: 1.1rem;">
+          <select id="stateSelector" aria-label="Current Autonomic State">
+            <option value="baseline">Baseline HRV &amp; Baroreflex Training (Personal Resonance)</option>
+            <option value="wired">Acute Stress / Sympathetic Spike (Cyclic Physiological Sigh)</option>
+            <option value="focus">Pre-Meeting / Cognitive Focus (BOLT-Scaled Box Breathing)</option>
+            <option value="post_workout">Post-Exercise Lactate &amp; HR Downshift (40:60 Extended Exhale RF)</option>
+            <option value="sleep">Sleep Onset / Parasympathetic Dominance (4-7-8 Cadence)</option>
+          </select>
+        </div>
+
+        <div class="section-title">
+          <span>2. Fine-Tune Cadence &amp; Ratio</span>
+        </div>
+        <p class="section-desc">
+          Population resonance averages 5.5 bpm (0.092 Hz), but human baroreflex loops span 4.5–6.5 bpm depending on blood volume and vascular tone.
+        </p>
+
+        <div class="form-grid">
+          <div class="control-row">
+            <div class="control-header">
+              <label for="rfSlider">Resonance Rate (Breaths / Min)</label>
+              <span class="control-val" id="rfSliderVal">5.5 bpm (10.9s cycle)</span>
+            </div>
+            <input type="range" id="rfSlider" min="4.0" max="7.5" step="0.1" value="5.5">
+          </div>
+
+          <div class="control-row">
+            <div class="control-header">
+              <label for="exhaleBiasSlider">Exhale Bias (% of Cycle on Exhale)</label>
+              <span class="control-val" id="exhaleBiasVal">55% Exhale / 45% Inhale</span>
+            </div>
+            <input type="range" id="exhaleBiasSlider" min="50" max="68" step="1" value="55">
+          </div>
+
+          <div class="control-row">
+            <div class="control-header">
+              <label for="holdAfterInhaleSlider">Post-Inhale Pause (Alveolar Gas Exchange)</label>
+              <span class="control-val" id="holdAfterInhaleVal">0.0s</span>
+            </div>
+            <input type="range" id="holdAfterInhaleSlider" min="0" max="6" step="0.5" value="0">
+          </div>
+        </div>
+
+        <!-- BOLT Score Timer -->
+        <div class="bolt-card">
+          <div class="section-title">
+            <span>3. BOLT Score (CO₂ Tolerance Test)</span>
+            <span class="bolt-timer-display" id="boltTimerDisplay">0.0s</span>
+          </div>
+          <p class="section-desc" style="margin-bottom: 0.65rem;">
+            Take a normal breath in and out through your nose, pinch your nose on the exhale, and time until the <strong>first definite desire to breathe</strong> or first involuntary diaphragm contraction (not a max breath hold).
+          </p>
+          <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="primary" id="boltStartStopBtn">Start BOLT Timer</button>
+            <span style="font-size: 0.78rem; color: var(--muted);" id="boltStatusText">
+              Saved BOLT: <strong>25.0s</strong> → Box phase scaled to <strong>4.5s</strong>
+            </span>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Modal 1: Stepped Resonance Frequency Calibration Wizard -->
+  <dialog id="calibrationDialog" closedby="any" aria-labelledby="calibrationDialogTitle">
+    <div class="dialog-header">
+      <h2 id="calibrationDialogTitle" style="font-size: 1.1rem;">Personal Resonance Frequency (RF) Calibration</h2>
+      <form method="dialog">
+        <button type="submit" value="close" autofocus>Close</button>
+      </form>
+    </div>
+    <div class="dialog-body">
+      <p style="font-size: 0.86rem; color: var(--muted);">
+        Based on the <strong>Lehrer &amp; Vaschillo HRVB Clinical Protocol</strong> (<em>Frontiers in Psychology</em>, 2014; Steffen et al., 2017): an individual's true baroreflex resonance frequency lies between <strong>4.5 and 6.5 breaths/min</strong>. Test each pace for 60–90 seconds while observing either your wearable's live heart-rate peak-to-trough swing (RSA amplitude) or subjective cardiorespiratory smoothness.
+      </p>
+
+      <div class="step-grid" id="calibrationSteps">
+        <div class="step-card" data-step-bpm="6.5">
+          <strong>6.5 bpm</strong>
+          <div>9.2s cycle</div>
+          <button type="button" class="try-step-btn" data-bpm="6.5" style="margin-top:0.4rem; width:100%; justify-content:center;">Test</button>
+        </div>
+        <div class="step-card" data-step-bpm="6.0">
+          <strong>6.0 bpm</strong>
+          <div>10.0s cycle</div>
+          <button type="button" class="try-step-btn" data-bpm="6.0" style="margin-top:0.4rem; width:100%; justify-content:center;">Test</button>
+        </div>
+        <div class="step-card active" data-step-bpm="5.5">
+          <strong>5.5 bpm</strong>
+          <div>10.9s cycle</div>
+          <button type="button" class="try-step-btn" data-bpm="5.5" style="margin-top:0.4rem; width:100%; justify-content:center;">Test</button>
+        </div>
+        <div class="step-card" data-step-bpm="5.0">
+          <strong>5.0 bpm</strong>
+          <div>12.0s cycle</div>
+          <button type="button" class="try-step-btn" data-bpm="5.0" style="margin-top:0.4rem; width:100%; justify-content:center;">Test</button>
+        </div>
+        <div class="step-card" data-step-bpm="4.5">
+          <strong>4.5 bpm</strong>
+          <div>13.3s cycle</div>
+          <button type="button" class="try-step-btn" data-bpm="4.5" style="margin-top:0.4rem; width:100%; justify-content:center;">Test</button>
+        </div>
+      </div>
+
+      <div class="science-item">
+        <h4>How to Identify Your Exact Resonance Rate</h4>
+        <p>
+          1. <strong>With a Polar H10 / Garmin / Apple Watch:</strong> Pick the rate that produces the largest heart rate oscillation (e.g., HR smoothly rising to 78 bpm on inhale and dropping to 62 bpm on exhale) with a 0° phase relationship.<br>
+          2. <strong>Without a sensor:</strong> Pick the slowest rate where you feel zero air hunger, effortless diaphragmatic expansion, and a warm peripheral vasodilation sensation in your hands.
+        </p>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <form method="dialog">
+        <button type="submit" value="done" class="primary">Save &amp; Return to Studio</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Modal 2: Peer-Reviewed Scientific Research & Citations -->
+  <dialog id="scienceDialog" closedby="any" aria-labelledby="scienceDialogTitle">
+    <div class="dialog-header">
+      <h2 id="scienceDialogTitle" style="font-size: 1.1rem;">Peer-Reviewed Breathwork Research</h2>
+      <form method="dialog">
+        <button type="submit" value="close" autofocus>Close</button>
+      </form>
+    </div>
+    <div class="dialog-body">
+      <div class="science-list">
+        <div class="science-item">
+          <h4>1. Cyclic Sighing vs. Box Breathing &amp; Mindfulness (Stanford RCT, 2023)</h4>
+          <p>
+            Balban, Neri, Kogon, Weed, Nouriani, Jo, Holl, Zeitzer, Spiegel &amp; Huberman (2023). A 28-day randomized controlled trial (N=108) comparing 5 minutes/day of cyclic sighing, box breathing, cyclic hyperventilation, and mindfulness meditation. Controlled breathwork—specifically <strong>cyclic sighing</strong> (double inhale + long exhale)—produced significantly greater daily increases in positive affect and a sustained reduction in resting respiratory rate compared to mindfulness meditation.
+          </p>
+          <a class="science-cite" href="https://europepmc.org/article/MED/36630953" target="_blank" rel="noopener">
+            Cell Reports Medicine (2023) · PMID: 36630953 · PMC9873947
+          </a>
+        </div>
+
+        <div class="science-item">
+          <h4>2. Individual Resonance Frequency vs. Fixed Pacing (Steffen et al., 2017; Lehrer &amp; Gevirtz, 2014)</h4>
+          <p>
+            While 5.5 breaths/min (0.092 Hz) is the population median, human closed-loop baroreflex delay varies between <strong>4.5 and 6.5 breaths/min</strong>. Steffen et al. (2017) demonstrated that breathing at your exact individual resonance frequency (RF) yields significantly higher LF/HF HRV amplitude, higher positive mood, and lower systolic blood pressure during stress recovery than breathing just 1 breath/min faster (RF + 1).
+          </p>
+          <a class="science-cite" href="https://europepmc.org/article/MED/28890735" target="_blank" rel="noopener">
+            Frontiers in Public Health (2017) · PMID: 28890735 · PMC5575449
+          </a>
+          &nbsp;·&nbsp;
+          <a class="science-cite" href="https://europepmc.org/article/MED/25101026" target="_blank" rel="noopener">
+            Frontiers in Psychology (2014) · PMID: 25101026 · PMC4104929
+          </a>
+        </div>
+
+        <div class="science-item">
+          <h4>3. Inhale-to-Exhale Ratio &amp; Vagal Tone (Bae et al., 2021; Van Diest et al., 2014)</h4>
+          <p>
+            During inhalation, cardiac vagal brake is suppressed (heart rate accelerates); during exhalation, acetylcholine release at the sinoatrial node restores vagal braking. Slow breathing with a <strong>40:60 inhale-to-exhale ratio</strong> at ~6 bpm produces stronger high-frequency (HF) parasympathetic HRV modulation and subjective relaxation than 50:50 pacing.
+          </p>
+          <a class="science-cite" href="https://europepmc.org/article/MED/30337860" target="_blank" rel="noopener">
+            Zaccaro et al., Frontiers in Human Neuroscience (2018) · PMID: 30337860 · PMC6137615
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <form method="dialog">
+        <button type="submit" value="close" class="primary">Got It</button>
+      </form>
+    </div>
+  </dialog>
+
+  <script>
+    // Modern Web Guidance Fallback: light-dismiss for browsers without <dialog closedby="any">
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      document.querySelectorAll('dialog[closedby="any"]').forEach((dialog) => {
+        dialog.addEventListener('click', (event) => {
+          if (event.target !== dialog) return;
+          const rect = dialog.getBoundingClientRect();
+          const isDialogContent = (
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width
+          );
+          if (isDialogContent) return;
+          dialog.close();
+        });
+      });
+    }
+
+    // Fallback for browsers without Invoker Commands (command / commandfor)
+    if (!('commandForElement' in HTMLButtonElement.prototype)) {
+      document.querySelectorAll('button[command="show-modal"]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('commandfor');
+          const dlg = document.getElementById(targetId);
+          if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
+        });
+      });
+    }
+
+    // Reset dialog.returnValue on close per modern-web-guidance
+    document.querySelectorAll('dialog').forEach((dlg) => {
+      dlg.addEventListener('close', () => {
+        dlg.returnValue = '';
+      });
+    });
+
+    // App State & LocalStorage Persistence
+    const STORAGE_KEY = 'resonance_breathwork_profile_v1';
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+    const state = {
+      protocol: saved.protocol || 'coherent',
+      personalRfBpm: saved.personalRfBpm || 5.5,
+      exhaleBiasPct: saved.exhaleBiasPct || 55,
+      postInhaleHold: saved.postInhaleHold || 0.0,
+      boltSeconds: saved.boltSeconds || 25.0,
+      totalMinutesLogged: saved.totalMinutesLogged || 0.0,
+      audioEnabled: saved.audioEnabled !== undefined ? saved.audioEnabled : true,
+      theme: saved.theme || 'auto',
+      isRunning: false,
+      sessionSecondsTotal: 300,
+      sessionSecondsElapsed: 0,
+      completedCycles: 0,
+      currentPhaseIndex: 0,
+      phaseElapsed: 0
+    };
+
+    function saveProfile() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        protocol: state.protocol,
+        personalRfBpm: state.personalRfBpm,
+        exhaleBiasPct: state.exhaleBiasPct,
+        postInhaleHold: state.postInhaleHold,
+        boltSeconds: state.boltSeconds,
+        totalMinutesLogged: state.totalMinutesLogged,
+        audioEnabled: state.audioEnabled,
+        theme: state.theme
+      }));
+    }
+
+    // Web Audio Synthesizer for Eyes-Closed Harmonic Guidance
+    let audioCtx = null;
+    function playPhaseTone(phaseType) {
+      if (!state.audioEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        // Solfeggio / harmonic intervals: Inhale (C5 528Hz), Top-off (E5 659Hz), Hold (G4 396Hz), Exhale (C4 264Hz)
+        const freqMap = {
+          inhale: 432,
+          topoff: 540,
+          hold: 360,
+          exhale: 288
+        };
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqMap[phaseType] || 432, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.11, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 1.0);
+      } catch (_) {}
+    }
+
+    // Build Phase Schedule for Active Protocol
+    function getProtocolSchedule() {
+      const cycleSec = 60 / state.personalRfBpm;
+      const holdIn = state.postInhaleHold;
+      const activeBreathSec = Math.max(4, cycleSec - holdIn);
+      const exhaleSec = +(activeBreathSec * (state.exhaleBiasPct / 100)).toFixed(2);
+      const inhaleSec = +(activeBreathSec - exhaleSec).toFixed(2);
+
+      // Scale Box breathing safely from BOLT score (20% of BOLT, clamped 3.0s to 7.0s)
+      const boltBoxSec = Math.min(7.0, Math.max(3.0, +(state.boltSeconds * 0.18).toFixed(1)));
+
+      switch (state.protocol) {
+        case 'coherent':
+          return [
+            { name: 'Inhale', type: 'inhale', duration: 5.45, cue: 'Nasal inhale, belly & lower ribs expand', targetScale: 1.0 },
+            { name: 'Exhale', type: 'exhale', duration: 5.45, cue: 'Smooth unforced exhale, relax shoulders', targetScale: 0.56 }
+          ];
+        case 'personal': {
+          const phases = [
+            { name: 'Inhale', type: 'inhale', duration: inhaleSec, cue: 'Slow diaphragmatic nasal inhale', targetScale: 1.0 }
+          ];
+          if (holdIn > 0) {
+            phases.push({ name: 'Pause', type: 'hold', duration: holdIn, cue: 'Soft glottis, zero neck tension', targetScale: 1.0 });
+          }
+          phases.push({ name: 'Exhale', type: 'exhale', duration: exhaleSec, cue: 'Extended vagal exhale', targetScale: 0.56 });
+          return phases;
+        }
+        case 'sigh':
+          return [
+            { name: 'Inhale (1/2)', type: 'inhale', duration: 3.2, cue: 'Deep nasal inhale (fill ~80%)', targetScale: 0.88 },
+            { name: 'Top-Off Sip', type: 'topoff', duration: 1.3, cue: 'Second sharp nasal sip to pop alveoli', targetScale: 1.04 },
+            { name: 'Long Sigh Out', type: 'exhale', duration: 6.5, cue: 'Slow complete mouth/nasal offload', targetScale: 0.54 }
+          ];
+        case 'box':
+          return [
+            { name: 'Inhale', type: 'inhale', duration: boltBoxSec, cue: `Nasal inhale (${boltBoxSec}s BOLT-scaled)`, targetScale: 1.0 },
+            { name: 'Hold Full', type: 'hold', duration: boltBoxSec, cue: 'Calm retention, steady gaze', targetScale: 1.0 },
+            { name: 'Exhale', type: 'exhale', duration: boltBoxSec, cue: 'Controlled nasal exhale', targetScale: 0.56 },
+            { name: 'Hold Empty', type: 'hold', duration: boltBoxSec, cue: 'Tolerate gentle CO₂ rise', targetScale: 0.56 }
+          ];
+        case 'downregulate':
+          return [
+            { name: 'Inhale', type: 'inhale', duration: 4.0, cue: 'Quiet nasal inhale for 4s', targetScale: 1.0 },
+            { name: 'Hold', type: 'hold', duration: 7.0, cue: 'Hold gently — O₂/CO₂ equilibration', targetScale: 1.0 },
+            { name: 'Exhale', type: 'exhale', duration: 8.0, cue: 'Slow 8s parasympathetic release', targetScale: 0.54 }
+          ];
+        case 'nasal_endurance': {
+          const base = Math.max(3.0, Math.min(5.5, +(state.boltSeconds * 0.15).toFixed(1)));
+          return [
+            { name: 'Nasal Inhale', type: 'inhale', duration: base, cue: 'Light nasal inhale', targetScale: 1.0 },
+            { name: 'Nasal Exhale', type: 'exhale', duration: +(base * 2).toFixed(1), cue: 'Double-length nasal exhale', targetScale: 0.56 },
+            { name: 'Control Pause', type: 'hold', duration: base, cue: 'Brief empty pause (hypercapnic adaptation)', targetScale: 0.56 }
+          ];
+        }
+        default:
+          return [
+            { name: 'Inhale', type: 'inhale', duration: 5.5, cue: 'Nasal inhale', targetScale: 1.0 },
+            { name: 'Exhale', type: 'exhale', duration: 5.5, cue: 'Nasal exhale', targetScale: 0.56 }
+          ];
+      }
+    }
+
+    // DOM References
+    const orbCore = document.getElementById('orbCore');
+    const phaseLabel = document.getElementById('phaseLabel');
+    const phaseTimer = document.getElementById('phaseTimer');
+    const phaseCue = document.getElementById('phaseCue');
+    const progressArc = document.getElementById('progressArc');
+    const phaseRatioSummary = document.getElementById('phaseRatioSummary');
+    const metricBpm = document.getElementById('metricBpm');
+    const metricCycleCount = document.getElementById('metricCycleCount');
+    const metricRemaining = document.getElementById('metricRemaining');
+    const metricTotalMins = document.getElementById('metricTotalMins');
+    const pillRfLabel = document.getElementById('pillRfLabel');
+    const profileSummaryText = document.getElementById('profileSummaryText');
+    const profileTierBadge = document.getElementById('profileTierBadge');
+
+    const rfSlider = document.getElementById('rfSlider');
+    const rfSliderVal = document.getElementById('rfSliderVal');
+    const exhaleBiasSlider = document.getElementById('exhaleBiasSlider');
+    const exhaleBiasVal = document.getElementById('exhaleBiasVal');
+    const holdAfterInhaleSlider = document.getElementById('holdAfterInhaleSlider');
+    const holdAfterInhaleVal = document.getElementById('holdAfterInhaleVal');
+
+    const waveCanvas = document.getElementById('respWave');
+    const waveCtx = waveCanvas.getContext('2d');
+    const waveHistory = [];
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function getBoltTier(sec) {
+      if (sec < 15) return { label: 'High CO₂ Sensitivity', advice: 'Start at 6.0 bpm gentle nasal pacing' };
+      if (sec < 25) return { label: 'Developing (15–25s)', advice: 'Ideal for 5.5 bpm & 4s Box' };
+      if (sec < 40) return { label: 'Functional Athlete (25–39s)', advice: 'Ready for 4.5–5.5 bpm & extended holds' };
+      return { label: 'Elite CO₂ Tolerance (40s+)', advice: 'Full baroreflex & retention capacity' };
+    }
+
+    function updateUIHeaders() {
+      const schedule = getProtocolSchedule();
+      const totalCycleSec = schedule.reduce((acc, p) => acc + p.duration, 0);
+      const effectiveBpm = (60 / totalCycleSec).toFixed(1);
+
+      metricBpm.textContent = effectiveBpm;
+      pillRfLabel.textContent = state.personalRfBpm.toFixed(1);
+      metricTotalMins.textContent = state.totalMinutesLogged.toFixed(1);
+
+      const summaryParts = schedule.map(p => `${p.name} ${p.duration}s`).join(' · ');
+      phaseRatioSummary.textContent = `${summaryParts} (${effectiveBpm} bpm)`;
+
+      rfSlider.value = state.personalRfBpm;
+      rfSliderVal.textContent = `${state.personalRfBpm.toFixed(1)} bpm (${(60 / state.personalRfBpm).toFixed(1)}s cycle)`;
+
+      exhaleBiasSlider.value = state.exhaleBiasPct;
+      exhaleBiasVal.textContent = `${state.exhaleBiasPct}% Exhale / ${100 - state.exhaleBiasPct}% Inhale`;
+
+      holdAfterInhaleSlider.value = state.postInhaleHold;
+      holdAfterInhaleVal.textContent = `${state.postInhaleHold.toFixed(1)}s`;
+
+      const tier = getBoltTier(state.boltSeconds);
+      profileTierBadge.textContent = tier.label;
+      profileSummaryText.textContent = `Calibrated RF: ${state.personalRfBpm.toFixed(1)} bpm (${100 - state.exhaleBiasPct}:${state.exhaleBiasPct} ratio) · BOLT: ${state.boltSeconds.toFixed(1)}s`;
+
+      const boltBoxSec = Math.min(7.0, Math.max(3.0, +(state.boltSeconds * 0.18).toFixed(1)));
+      document.getElementById('boltStatusText').innerHTML =
+        `Saved BOLT: <strong>${state.boltSeconds.toFixed(1)}s</strong> → Box phase scaled to <strong>${boltBoxSec}s</strong>`;
+
+      document.querySelectorAll('.protocol-pill').forEach((btn) => {
+        btn.setAttribute('aria-pressed', String(btn.dataset.protocol === state.protocol));
+      });
+
+      if (!state.isRunning) {
+        phaseLabel.textContent = schedule[0].name;
+        phaseTimer.textContent = `${schedule[0].duration.toFixed(1)}s`;
+        phaseCue.textContent = schedule[0].cue;
+      }
+    }
+
+    // Animation Loop
+    let lastTimestamp = null;
+    let currentScale = 0.56;
+    let startScaleForPhase = 0.56;
+
+    function stepAnimation(timestamp) {
+      if (!state.isRunning) return;
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const dt = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      const schedule = getProtocolSchedule();
+      const currentPhase = schedule[state.currentPhaseIndex] || schedule[0];
+
+      state.phaseElapsed += dt;
+      state.sessionSecondsElapsed += dt;
+
+      if (state.phaseElapsed >= currentPhase.duration) {
+        state.phaseElapsed = 0;
+        startScaleForPhase = currentPhase.targetScale;
+        state.currentPhaseIndex = (state.currentPhaseIndex + 1) % schedule.length;
+        if (state.currentPhaseIndex === 0) {
+          state.completedCycles += 1;
+          metricCycleCount.textContent = String(state.completedCycles);
+        }
+        const nextPhase = schedule[state.currentPhaseIndex];
+        playPhaseTone(nextPhase.type);
+      }
+
+      const activePhase = schedule[state.currentPhaseIndex];
+      const progress = Math.min(1, state.phaseElapsed / activePhase.duration);
+      // Smooth cosine easing for organic lung inflation/deflation
+      const eased = 0.5 - 0.5 * Math.cos(Math.PI * progress);
+      currentScale = startScaleForPhase + (activePhase.targetScale - startScaleForPhase) * eased;
+
+      orbCore.style.transform = `scale(${currentScale.toFixed(4)})`;
+      phaseLabel.textContent = activePhase.name;
+      const remPhase = Math.max(0, activePhase.duration - state.phaseElapsed);
+      phaseTimer.textContent = `${remPhase.toFixed(1)}s`;
+      phaseCue.textContent = activePhase.cue;
+
+      // SVG Ring Progress
+      const circumference = 917.3;
+      progressArc.style.strokeDashoffset = String(circumference * (1 - progress));
+
+      // Remaining session timer
+      const remTotal = Math.max(0, state.sessionSecondsTotal - state.sessionSecondsElapsed);
+      metricRemaining.textContent = formatTime(remTotal);
+
+      // Record wave point
+      waveHistory.push(currentScale);
+      if (waveHistory.length > 320) waveHistory.shift();
+      drawWave();
+
+      if (remTotal <= 0) {
+        finishSession();
+        return;
+      }
+
+      requestAnimationFrame(stepAnimation);
+    }
+
+    function drawWave() {
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      waveCtx.clearRect(0, 0, w, h);
+
+      if (waveHistory.length < 2) return;
+      waveCtx.beginPath();
+      waveCtx.lineWidth = 2.5;
+      waveCtx.strokeStyle = '#2dd4bf';
+
+      for (let i = 0; i < waveHistory.length; i++) {
+        const x = (i / 320) * w;
+        const norm = (waveHistory[i] - 0.52) / (1.05 - 0.52);
+        const y = h - 10 - norm * (h - 26);
+        if (i === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+    }
+
+    function startSession() {
+      const schedule = getProtocolSchedule();
+      state.isRunning = true;
+      state.currentPhaseIndex = 0;
+      state.phaseElapsed = 0;
+      startScaleForPhase = 0.56;
+      lastTimestamp = null;
+      document.getElementById('startStopBtn').textContent = 'Pause Session';
+      playPhaseTone(schedule[0].type);
+      requestAnimationFrame(stepAnimation);
+    }
+
+    function pauseSession() {
+      state.isRunning = false;
+      if (state.sessionSecondsElapsed > 5) {
+        state.totalMinutesLogged += +(state.sessionSecondsElapsed / 60).toFixed(2);
+        saveProfile();
+      }
+      document.getElementById('startStopBtn').textContent = 'Resume Session';
+      updateUIHeaders();
+    }
+
+    function finishSession() {
+      state.isRunning = false;
+      state.totalMinutesLogged += +(state.sessionSecondsTotal / 60).toFixed(2);
+      state.sessionSecondsElapsed = 0;
+      saveProfile();
+      document.getElementById('startStopBtn').textContent = 'Start Session';
+      phaseLabel.textContent = 'Complete';
+      phaseCue.textContent = 'Session logged to your profile';
+      updateUIHeaders();
+    }
+
+    // Event Listeners
+    document.getElementById('startStopBtn').addEventListener('click', () => {
+      if (state.isRunning) pauseSession();
+      else startSession();
+    });
+
+    document.getElementById('resetSessionBtn').addEventListener('click', () => {
+      state.isRunning = false;
+      state.sessionSecondsElapsed = 0;
+      state.completedCycles = 0;
+      state.currentPhaseIndex = 0;
+      state.phaseElapsed = 0;
+      waveHistory.length = 0;
+      drawWave();
+      orbCore.style.transform = 'scale(0.58)';
+      progressArc.style.strokeDashoffset = '917.3';
+      metricCycleCount.textContent = '0';
+      metricRemaining.textContent = formatTime(state.sessionSecondsTotal);
+      document.getElementById('startStopBtn').textContent = 'Start Session';
+      updateUIHeaders();
+    });
+
+    document.getElementById('sessionDurationSelect').addEventListener('change', (e) => {
+      state.sessionSecondsTotal = Number(e.target.value);
+      state.sessionSecondsElapsed = 0;
+      metricRemaining.textContent = formatTime(state.sessionSecondsTotal);
+    });
+
+    document.querySelectorAll('.protocol-pill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.protocol = btn.dataset.protocol;
+        state.currentPhaseIndex = 0;
+        state.phaseElapsed = 0;
+        saveProfile();
+        updateUIHeaders();
+      });
+    });
+
+    document.getElementById('stateSelector').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'baseline') {
+        state.protocol = 'personal';
+      } else if (val === 'wired') {
+        state.protocol = 'sigh';
+      } else if (val === 'focus') {
+        state.protocol = 'box';
+      } else if (val === 'post_workout') {
+        state.protocol = 'personal';
+        state.exhaleBiasPct = 60;
+      } else if (val === 'sleep') {
+        state.protocol = 'downregulate';
+      }
+      saveProfile();
+      updateUIHeaders();
+    });
+
+    rfSlider.addEventListener('input', (e) => {
+      state.personalRfBpm = parseFloat(e.target.value);
+      state.protocol = 'personal';
+      saveProfile();
+      updateUIHeaders();
+    });
+
+    exhaleBiasSlider.addEventListener('input', (e) => {
+      state.exhaleBiasPct = parseInt(e.target.value, 10);
+      state.protocol = 'personal';
+      saveProfile();
+      updateUIHeaders();
+    });
+
+    holdAfterInhaleSlider.addEventListener('input', (e) => {
+      state.postInhaleHold = parseFloat(e.target.value);
+      state.protocol = 'personal';
+      saveProfile();
+      updateUIHeaders();
+    });
+
+    // BOLT Stopwatch
+    let boltRunning = false;
+    let boltStartMs = 0;
+    let boltRaf = null;
+    const boltBtn = document.getElementById('boltStartStopBtn');
+    const boltDisplay = document.getElementById('boltTimerDisplay');
+
+    function tickBolt() {
+      if (!boltRunning) return;
+      const elapsed = (performance.now() - boltStartMs) / 1000;
+      boltDisplay.textContent = `${elapsed.toFixed(1)}s`;
+      boltRaf = requestAnimationFrame(tickBolt);
+    }
+
+    boltBtn.addEventListener('click', () => {
+      if (!boltRunning) {
+        boltRunning = true;
+        boltStartMs = performance.now();
+        boltBtn.textContent = 'Stop at First Hunger';
+        boltRaf = requestAnimationFrame(tickBolt);
+      } else {
+        boltRunning = false;
+        cancelAnimationFrame(boltRaf);
+        const finalSec = Math.max(5, +((performance.now() - boltStartMs) / 1000).toFixed(1));
+        state.boltSeconds = finalSec;
+        boltDisplay.textContent = `${finalSec.toFixed(1)}s`;
+        boltBtn.textContent = 'Start BOLT Timer';
+        saveProfile();
+        updateUIHeaders();
+      }
+    });
+
+    // Calibration Modal Step Buttons
+    document.querySelectorAll('.try-step-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const bpm = parseFloat(btn.dataset.bpm);
+        state.personalRfBpm = bpm;
+        state.protocol = 'personal';
+        document.querySelectorAll('#calibrationSteps .step-card').forEach((card) => {
+          card.classList.toggle('active', parseFloat(card.dataset.stepBpm) === bpm);
+        });
+        saveProfile();
+        updateUIHeaders();
+        document.getElementById('calibrationDialog').close();
+        if (!state.isRunning) startSession();
+      });
+    });
+
+    // Audio & Theme Toggles
+    const audioToggleBtn = document.getElementById('audioToggleBtn');
+    audioToggleBtn.setAttribute('aria-pressed', String(state.audioEnabled));
+    audioToggleBtn.textContent = `Audio Cues: ${state.audioEnabled ? 'ON' : 'OFF'}`;
+    audioToggleBtn.addEventListener('click', () => {
+      state.audioEnabled = !state.audioEnabled;
+      audioToggleBtn.setAttribute('aria-pressed', String(state.audioEnabled));
+      audioToggleBtn.textContent = `Audio Cues: ${state.audioEnabled ? 'ON' : 'OFF'}`;
+      saveProfile();
+    });
+
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    function applyTheme() {
+      if (state.theme === 'auto') {
+        document.documentElement.removeAttribute('data-theme');
+        themeToggleBtn.textContent = 'Theme: Auto';
+      } else {
+        document.documentElement.setAttribute('data-theme', state.theme);
+        themeToggleBtn.textContent = `Theme: ${state.theme === 'dark' ? 'Dark' : 'Light'}`;
+      }
+    }
+    applyTheme();
+    themeToggleBtn.addEventListener('click', () => {
+      const order = ['auto', 'dark', 'light'];
+      state.theme = order[(order.indexOf(state.theme) + 1) % order.length];
+      applyTheme();
+      saveProfile();
+    });
+
+    updateUIHeaders();
+  </script>
+</body>
+</html>
